@@ -15,13 +15,12 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import tetris.input.KeyboardInput;
-import tetris.model.BoardCell;
-import tetris.model.Game;
-import tetris.model.PieceType;
+import tetris.model.*;
 
 public class Tetris extends Canvas {
 
     private Game game = new Game();
+    private Player player;
     private final BufferStrategy strategy;
 
     private final int BOARD_CORNER_X = 300;
@@ -34,6 +33,7 @@ public class Tetris extends Canvas {
 
 
     public Tetris() {
+        this.player = new HumanPlayer(keyboard);
         JFrame container = new JFrame("Tetris");
         JPanel panel = (JPanel) container.getContentPane();
         panel.setPreferredSize(new Dimension(800, 600));
@@ -58,6 +58,9 @@ public class Tetris extends Canvas {
 
         createBufferStrategy(2);
         strategy = getBufferStrategy();
+
+
+
     }
 
     void gameLoop() {
@@ -65,6 +68,13 @@ public class Tetris extends Canvas {
             if (keyboard.newGame()) {
                 game = new Game();
                 game.startGame();
+            }
+            if (keyboard.switchPlayer()) {
+                if(player instanceof HumanPlayer){
+                    player = new AiPlayer(keyboard);
+                } else {
+                    player = new HumanPlayer(keyboard);
+                }
             }
             if (game.isPlaying()) {
 
@@ -83,21 +93,26 @@ public class Tetris extends Canvas {
     }
 
     void tetrisLoop() {
+
+        player.update(game);
+
         if (game.isDropping()) {
             game.moveDown();
         } else if (System.currentTimeMillis() - lastIteration >= game.getIterationDelay()) {
             game.moveDown();
             lastIteration = System.currentTimeMillis();
         }
-        if (keyboard.rotate()) {
+
+        if (player.rotate()) {
             game.rotate();
-        } else if (keyboard.left()) {
+        } else if (player.left()) {
             game.moveLeft();
-        } else if (keyboard.right()) {
+        } else if (player.right()) {
             game.moveRight();
-        } else if (keyboard.drop()) {
+        } else if (player.drop()) {
             game.drop();
         }
+
     }
 
     public void draw() {
@@ -150,8 +165,9 @@ public class Tetris extends Canvas {
     private void drawStatus(Graphics2D g) {
         g.setFont(new Font("Dialog", Font.PLAIN, 16));
         g.setColor(Color.RED);
-        g.drawString(getLevel(), 10, 20);
-        g.drawString(getLines(), 10, 40);
+        g.drawString(getPlayer(), 10, 20);
+        g.drawString(getLevel(), 10, 40);
+        g.drawString(getLines(), 10, 60);
         g.drawString(getScore(), 20, 80);
     }
 
@@ -189,6 +205,8 @@ public class Tetris extends Canvas {
         return String.format("Score     %1s", game.getTotalScore());
     }
 
+    private String getPlayer() { return String.format("Player: %1s", player); }
+
     private void drawPiecePreviewBox(Graphics2D g) {
         g.setFont(new Font("Dialog", Font.PLAIN, 16));
         g.setColor(Color.RED);
@@ -201,9 +219,10 @@ public class Tetris extends Canvas {
         g.drawString("H E L P", 50, 140);
         g.drawString("F1: Pause Game", 10, 160);
         g.drawString("F2: New Game", 10, 180);
-        g.drawString("UP: Rotate", 10, 200);
-        g.drawString("ARROWS: Move left/right", 10, 220);
-        g.drawString("SPACE: Drop", 10, 240);
+        g.drawString("F3: Switch Player", 10, 200);
+        g.drawString("UP: Rotate", 10, 220);
+        g.drawString("ARROWS: Move left/right", 10, 240);
+        g.drawString("SPACE: Drop", 10, 260);
     }
 
     private void drawPiecePreview(Graphics2D g, PieceType type) {

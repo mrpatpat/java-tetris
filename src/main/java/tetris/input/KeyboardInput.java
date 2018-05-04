@@ -16,6 +16,7 @@ public class KeyboardInput implements KeyListener {
         currentStates.put(KeyEvent.VK_SPACE, Boolean.FALSE);
         currentStates.put(KeyEvent.VK_F2, Boolean.FALSE);
         currentStates.put(KeyEvent.VK_F1, Boolean.FALSE);
+        currentStates.put(KeyEvent.VK_F3, Boolean.FALSE);
     }
 
     public boolean left() {
@@ -41,6 +42,8 @@ public class KeyboardInput implements KeyListener {
     public boolean newGame() {
         return keyDown(KeyEvent.VK_F2);
     }
+
+    public boolean switchPlayer() { return keyDown(KeyEvent.VK_F3); }
 
     private boolean keyDown(int keyCode) {
         return currentStates.put(keyCode, Boolean.FALSE);
