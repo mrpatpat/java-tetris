@@ -2,6 +2,7 @@ package neuralnetwork;
 
 import org.neuroph.core.NeuralNetwork;
 import org.neuroph.core.data.DataSet;
+import org.neuroph.core.learning.LearningRule;
 import org.neuroph.nnet.MultiLayerPerceptron;
 import org.neuroph.nnet.Perceptron;
 import tetris.model.BoardCell;
@@ -30,9 +31,13 @@ public class TetrisNN {
     }
 
     public TetrisNNResult predict(Game game) {
-        this.nn.setInput(getInputArrayFromGame(game));
+        this.nn.setInput(TetrisNN.getInputArrayFromGame(game));
         this.nn.calculate();
         return this.getResultFromOutputArray(this.nn.getOutput());
+    }
+
+    public void learn(TetrisNNLearningSet learningSet) {
+        this.nn.learn(learningSet.toDataSet());
     }
 
     private TetrisNNResult getResultFromOutputArray(double[] output) {
@@ -40,7 +45,7 @@ public class TetrisNN {
         return new TetrisNNResult(output[0] > limit, output[1] > limit, output[2] > limit, output[3] > limit);
     }
 
-    private double[] getInputArrayFromGame(Game game) {
+    public static double[] getInputArrayFromGame(Game game) {
         BoardCell[][] cells = game.getBoardCells();
         int w = cells.length;
         int h = cells[0].length;

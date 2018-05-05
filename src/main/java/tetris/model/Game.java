@@ -17,6 +17,29 @@ public class Game {
         board = new Board();
     }
 
+    public int getBuildHeight() {
+
+        BoardCell[][] cells = board.getBoardWithoutCurrentPiece();
+        int height = 0;
+
+        for (int y = 0; y < cells[0].length; y++) {
+
+            int blocksInRow = 0;
+            for (int x = 0; x < cells.length; x++) {
+                blocksInRow += cells[x][y].isEmpty()? 0 : 1;
+            }
+            if(blocksInRow > 0){
+                height++;
+            } else {
+                return height;
+            }
+
+        }
+
+        return height;
+
+    }
+
     public BoardCell[][] getBoardCells() {
         return board.getBoardWithPiece();
     }

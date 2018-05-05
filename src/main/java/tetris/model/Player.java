@@ -2,7 +2,8 @@ package tetris.model;
 
 public abstract class Player {
 
-    public abstract void update(Game game);
+    public abstract void updateLoopStart(Game game);
+    public abstract void updateLoopEnd(Game game);
 
     public abstract boolean left();
 

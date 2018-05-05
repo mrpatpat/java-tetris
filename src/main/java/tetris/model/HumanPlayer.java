@@ -11,7 +11,12 @@ public class HumanPlayer extends Player {
     }
 
     @Override
-    public void update(Game game) {
+    public void updateLoopStart(Game game) {
+
+    }
+
+    @Override
+    public void updateLoopEnd(Game game) {
 
     }
 

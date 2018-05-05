@@ -166,6 +166,15 @@ public class Board {
         return dest;
     }
 
+    public BoardCell[][] getBoardWithoutCurrentPiece() {
+        BoardCell[][] dest = new BoardCell[WIDTH][HEIGHT];
+
+        for (int y = 0; y < WIDTH; y++) {
+            System.arraycopy(board[y], 0, dest[y], 0, board[0].length);
+        }
+        return dest;
+    }
+
     private void addPieceToBoard() {
         for (Point point : currentPiece.getPoints()) {
             int x = pieceCenter.x + point.x;

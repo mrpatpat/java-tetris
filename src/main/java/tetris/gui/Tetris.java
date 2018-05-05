@@ -30,6 +30,10 @@ public class Tetris extends Canvas {
     private long lastIteration = System.currentTimeMillis();
 
     private static final int PIECE_WIDTH = 20;
+    private int gamesLeft = 0;
+
+    private int averageScore = 0;
+    private int elementsInAverageScore = 0;
 
 
     public Tetris() {
@@ -62,16 +66,29 @@ public class Tetris extends Canvas {
 
 
     }
+    public void addLastGameToAverageScore(){
+        if(game != null){
+            addToAverageScore(game.getTotalScore());
+        }
+    }
+
+    public void addToAverageScore(int score){
+        averageScore = ((averageScore*elementsInAverageScore) + score)/++elementsInAverageScore;
+    }
 
     void gameLoop() {
         while (true) {
             if (keyboard.newGame()) {
+                addLastGameToAverageScore();
                 game = new Game();
                 game.startGame();
             }
+            if (keyboard.newMultipleGames()) {
+                gamesLeft = 10000;
+            }
             if (keyboard.switchPlayer()) {
                 if(player instanceof HumanPlayer){
-                    player = new AiPlayer(keyboard);
+                    player = new AiPlayer();
                 } else {
                     player = new HumanPlayer(keyboard);
                 }
@@ -85,8 +102,19 @@ public class Tetris extends Canvas {
                     game.pauseGame();
                 }
             }
+            if (!game.isPlaying() && !game.isPaused() && gamesLeft > 0 && player instanceof AiPlayer) {
+                addLastGameToAverageScore();
+                System.out.println("Starting game " + (10000-gamesLeft));
+                game = new Game();
+                game.startGame();
+                gamesLeft--;
+            }
             try {
-                Thread.sleep(20);
+                if(player instanceof AiPlayer){
+
+                } else {
+                    Thread.sleep(20);
+                }
             } catch (Exception e) { }
             draw();
         }
@@ -94,13 +122,17 @@ public class Tetris extends Canvas {
 
     void tetrisLoop() {
 
-        player.update(game);
+        player.updateLoopStart(game);
 
         if (game.isDropping()) {
             game.moveDown();
         } else if (System.currentTimeMillis() - lastIteration >= game.getIterationDelay()) {
             game.moveDown();
-            lastIteration = System.currentTimeMillis();
+            if(player instanceof AiPlayer){
+                lastIteration = 0;
+            } else {
+                lastIteration = System.currentTimeMillis();
+            }
         }
 
         if (player.rotate()) {
@@ -112,6 +144,8 @@ public class Tetris extends Canvas {
         } else if (player.drop()) {
             game.drop();
         }
+
+        player.updateLoopEnd(game);
 
     }
 
@@ -202,7 +236,7 @@ public class Tetris extends Canvas {
     }
 
     private String getScore() {
-        return String.format("Score     %1s", game.getTotalScore());
+        return String.format("Score (avg: %1s): %1s", averageScore,  game.getTotalScore());
     }
 
     private String getPlayer() { return String.format("Player: %1s", player); }
@@ -220,9 +254,10 @@ public class Tetris extends Canvas {
         g.drawString("F1: Pause Game", 10, 160);
         g.drawString("F2: New Game", 10, 180);
         g.drawString("F3: Switch Player", 10, 200);
-        g.drawString("UP: Rotate", 10, 220);
-        g.drawString("ARROWS: Move left/right", 10, 240);
-        g.drawString("SPACE: Drop", 10, 260);
+        if(player instanceof AiPlayer) g.drawString("F4: Play 10k Games", 10, 220);
+        g.drawString("UP: Rotate", 10, 240);
+        g.drawString("ARROWS: Move left/right", 10, 260);
+        g.drawString("SPACE: Drop", 10, 280);
     }
 
     private void drawPiecePreview(Graphics2D g, PieceType type) {
