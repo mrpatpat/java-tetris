@@ -14,6 +14,7 @@ import java.awt.image.BufferStrategy;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import neuralnetwork.TetrisNN;
 import tetris.input.KeyboardInput;
 import tetris.model.*;
 
@@ -35,9 +36,15 @@ public class Tetris extends Canvas {
     private int averageScore = 0;
     private int elementsInAverageScore = 0;
 
+    private TetrisNN tetrisNN;
+
 
     public Tetris() {
-        this.player = new HumanPlayer(keyboard);
+
+        this.tetrisNN = new TetrisNN();
+        this.tetrisNN.create("CommonNN");
+
+        this.player = new HumanPlayer(keyboard, this.tetrisNN);
         JFrame container = new JFrame("Tetris");
         JPanel panel = (JPanel) container.getContentPane();
         panel.setPreferredSize(new Dimension(800, 600));
@@ -88,9 +95,9 @@ public class Tetris extends Canvas {
             }
             if (keyboard.switchPlayer()) {
                 if(player instanceof HumanPlayer){
-                    player = new AiPlayer();
+                        player = new AiPlayer(tetrisNN);
                 } else {
-                    player = new HumanPlayer(keyboard);
+                    player = new HumanPlayer(keyboard, this.tetrisNN);
                 }
             }
             if (game.isPlaying()) {

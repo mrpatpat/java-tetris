@@ -3,8 +3,12 @@ package neuralnetwork;
 import org.neuroph.core.NeuralNetwork;
 import org.neuroph.core.data.DataSet;
 import org.neuroph.core.learning.LearningRule;
+import org.neuroph.core.learning.error.MeanSquaredError;
+import org.neuroph.nnet.ConvolutionalNetwork;
 import org.neuroph.nnet.MultiLayerPerceptron;
 import org.neuroph.nnet.Perceptron;
+import org.neuroph.nnet.comp.Dimension2D;
+import org.neuroph.nnet.learning.ConvolutionalBackpropagation;
 import tetris.model.BoardCell;
 import tetris.model.Game;
 
@@ -18,7 +22,30 @@ public class TetrisNN {
 
     public void create(String name) {
         this.name = name;
-        this.nn = new Perceptron(200, 4);
+        //this.nn = new Perceptron(200, 4);
+
+        int maxIter = 30000; // Integer.parseInt(args[0]);
+        double learningRate = 5; //  Double.parseDouble(args[2]);
+
+        ConvolutionalNetwork convolutionNetwork = new ConvolutionalNetwork.Builder()
+                .withInputLayer(10, 10, 1)
+                .withConvolutionLayer(5, 5, 1)
+                .withPoolingLayer(8, 16)
+                .withConvolutionLayer(5, 5, 1)
+                .withPoolingLayer(6, 12)
+                .withConvolutionLayer(5, 5, 1)
+                .withFullConnectedLayer(4)
+                .build();
+
+        ConvolutionalBackpropagation backPropagation = new ConvolutionalBackpropagation();
+        backPropagation.setLearningRate(learningRate);
+        backPropagation.setMaxIterations(maxIter);
+
+        convolutionNetwork.setLearningRule(backPropagation);
+
+        this.nn = convolutionNetwork;
+        this.nn.randomizeWeights();
+
     }
 
     public void load(String name) {
@@ -41,8 +68,35 @@ public class TetrisNN {
     }
 
     private TetrisNNResult getResultFromOutputArray(double[] output) {
-        double limit = 0.9;
-        return new TetrisNNResult(output[0] > limit, output[1] > limit, output[2] > limit, output[3] > limit);
+
+
+        //all the same
+        if(output[0] == output[1] && output[1] == output[2] && output[2] == output[3]){
+            switch ((int)(Math.random()*4.0)) {
+                case 0: return new TetrisNNResult(true, false, false, false);
+                case 1: return new TetrisNNResult(false, true, false, false);
+                case 2: return new TetrisNNResult(false, false, true, false);
+                case 3: return new TetrisNNResult(false, false, false, true);
+            }
+        }
+        System.out.println(output[0] + " " + output[1] + " " + output[2] + " " +output[3] + " ");
+
+        // we have a winner button
+        double max = 0;
+        TetrisNNResult result = new TetrisNNResult(false, false, false, false);
+        for (int i = 0; i < output.length; i++) {
+            if(max < output[i]){
+                max = output[i];
+                switch (i) {
+                    case 0: result = new TetrisNNResult(true, false, false, false); break;
+                    case 1: result = new TetrisNNResult(false, true, false, false); break;
+                    case 2: result = new TetrisNNResult(false, false, true, false); break;
+                    case 3: result = new TetrisNNResult(false, false, false, true); break;
+                }
+            }
+
+        }
+        return result;
     }
 
     public static double[] getInputArrayFromGame(Game game) {
